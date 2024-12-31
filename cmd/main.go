@@ -1,6 +1,7 @@
 package main
 
 import (
+	"api-rest-fiber-gorm/src/controllers"
 	"api-rest-fiber-gorm/src/database"
 	"api-rest-fiber-gorm/src/models"
 	"api-rest-fiber-gorm/src/routes"
@@ -36,6 +37,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("Could not connect to the database: %v", err)
 	}
+
+	controllers.SetUpDatabase(db)
 
 	err = models.MigrateUsers(db)
 
