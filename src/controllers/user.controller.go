@@ -5,9 +5,14 @@ import (
 	"net/http"
 
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
 )
 
-var repo = &models.Repository{}
+var repo *gorm.DB
+
+func SetUpDatabase(db *gorm.DB) {
+	repo = db
+}
 
 func CreateUser(context *fiber.Ctx) error {
 	users := models.Users{}
@@ -18,7 +23,7 @@ func CreateUser(context *fiber.Ctx) error {
 		)
 		return err
 	}
-	err = repo.DB.Create(&users).Error
+	err = repo.Create(&users).Error
 	if err != nil {
 		context.Status(http.StatusBadRequest).JSON(
 			&fiber.Map{"message": "could not create user"},
@@ -40,7 +45,7 @@ func DeleteUser(context *fiber.Ctx) error {
 		)
 		return nil
 	}
-	err := repo.DB.Delete(userModel, id)
+	err := repo.Delete(userModel, id)
 	if err.Error != nil {
 		context.Status(http.StatusBadRequest).JSON(
 			&fiber.Map{"message": "could not delete book"},
@@ -62,7 +67,7 @@ func GetUserById(context *fiber.Ctx) error {
 		)
 		return nil
 	}
-	err := repo.DB.Where("id = ?", id).First(userModel).Error
+	err := repo.Where("id = ?", id).First(userModel).Error
 	if err != nil {
 		context.Status(http.StatusBadRequest).JSON(
 			&fiber.Map{"message": "could not get the user"},
@@ -77,7 +82,7 @@ func GetUserById(context *fiber.Ctx) error {
 
 func GetUsers(context *fiber.Ctx) error {
 	userModels := &[]models.Users{}
-	err := repo.DB.Find(userModels).Error
+	err := repo.Find(userModels).Error
 	if err != nil {
 		context.Status(http.StatusBadRequest).JSON(
 			&fiber.Map{"message": "could not get the users"},
@@ -109,7 +114,7 @@ func UpdateUser(context *fiber.Ctx) error {
 	}
 
 	var existingUser models.Users
-	err = repo.DB.Where("id = ?", id).First(&existingUser).Error
+	err = repo.Where("id = ?", id).First(&existingUser).Error
 	if err != nil {
 		context.Status(http.StatusNotFound).JSON(
 			&fiber.Map{"message": "User not found"},
@@ -117,7 +122,7 @@ func UpdateUser(context *fiber.Ctx) error {
 		return err
 	}
 
-	err = repo.DB.Model(&existingUser).Updates(users).Error
+	err = repo.Model(&existingUser).Updates(users).Error
 	if err != nil {
 		context.Status(http.StatusInternalServerError).JSON(
 			&fiber.Map{"message": "Could not update user"},
