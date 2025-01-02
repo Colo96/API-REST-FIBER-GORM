@@ -17,7 +17,7 @@ func main() {
 	envPath, err := filepath.Abs("../.env")
 	if err != nil {
 		log.Printf("Error resolving .env file path: %v", err)
-		os.Exit(1)
+		return
 	}
 
 	if err := godotenv.Load(envPath); err != nil {
@@ -27,7 +27,8 @@ func main() {
 	requiredVars := []string{"DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_PORT"}
 	for _, v := range requiredVars {
 		if os.Getenv(v) == "" {
-			log.Fatalf("Missing required environment variable: %s", v)
+			log.Printf("Missing required environment variable: %s", v)
+			return
 		}
 	}
 
@@ -42,19 +43,21 @@ func main() {
 
 	db, err := database.Connect(config)
 	if err != nil {
-		log.Fatalf("Could not connect to the database: %v", err)
+		log.Printf("Could not connect to the database: %v", err)
+		return
 	}
 
 	controllers.SetUpDatabase(db)
 
 	if err := models.MigrateUsers(db); err != nil {
-		log.Fatalf("Could not migrate the database: %v", err)
+		log.Printf("Could not migrate the database: %v", err)
+		return
 	}
 
 	app := fiber.New()
 	routes.Setup(app)
 
 	if err := app.Listen(":3000"); err != nil {
-		log.Fatalf("Failed to start the server: %v", err)
+		log.Printf("Failed to start the server: %v", err)
 	}
 }
