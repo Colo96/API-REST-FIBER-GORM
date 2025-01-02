@@ -17,7 +17,7 @@ import (
 func main() {
 	envPath, err := filepath.Abs("../.env")
 	if err != nil {
-		log.Fatalf("Error resolving .env file path: %v", err)
+		fmt.Printf("Error resolving .env file path: %v", err)
 	}
 
 	if err := godotenv.Load(envPath); err != nil {
@@ -30,7 +30,7 @@ func main() {
 		Password: os.Getenv("DB_PASSWORD"),
 		DBName:   os.Getenv("DB_NAME"),
 		Port:     os.Getenv("DB_PORT"),
-		SSLMode:  os.Getenv("DB_SSL_MODE"),
+		SSLMode:  os.Getenv("DB_SSLMODE"),
 	}
 
 	db, err := database.Connect(config)
