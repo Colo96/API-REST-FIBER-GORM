@@ -5,6 +5,7 @@ import (
 	"api-rest-fiber-gorm/src/database"
 	"api-rest-fiber-gorm/src/models"
 	"api-rest-fiber-gorm/src/routes"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -16,20 +17,11 @@ import (
 func main() {
 	envPath, err := filepath.Abs("../.env")
 	if err != nil {
-		log.Printf("Error resolving .env file path: %v", err)
-		return
+		log.Fatalf("Error resolving .env file path: %v", err)
 	}
 
 	if err := godotenv.Load(envPath); err != nil {
-		log.Println("Error loading .env file, continuing without it")
-	}
-
-	requiredVars := []string{"DB_HOST", "DB_USER", "DB_PASSWORD", "DB_NAME", "DB_PORT"}
-	for _, v := range requiredVars {
-		if os.Getenv(v) == "" {
-			log.Printf("Missing required environment variable: %s", v)
-			return
-		}
+		fmt.Println("Error loading .env file")
 	}
 
 	config := &database.Config{
@@ -42,22 +34,21 @@ func main() {
 	}
 
 	db, err := database.Connect(config)
+
 	if err != nil {
-		log.Printf("Could not connect to the database: %v", err)
-		return
+		log.Fatalf("Could not connect to the database: %v", err)
 	}
 
 	controllers.SetUpDatabase(db)
 
-	if err := models.MigrateUsers(db); err != nil {
-		log.Printf("Could not migrate the database: %v", err)
-		return
+	err = models.MigrateUsers(db)
+
+	if err != nil {
+		log.Fatal("could not migrate the database", err)
 	}
 
 	app := fiber.New()
 	routes.Setup(app)
 
-	if err := app.Listen(":3000"); err != nil {
-		log.Printf("Failed to start the server: %v", err)
-	}
+	log.Fatal(app.Listen(":3000"))
 }
